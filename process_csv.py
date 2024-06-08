@@ -14,9 +14,16 @@ def get_date_time(time_file_path):
     end_time = datetime.fromtimestamp(end_time_str) 
     return start_time, end_time
 
-def process_csv(file_path,start_time, end_time):
+def process_csv(file_path, item):
     df = pd.read_csv(file_path)
-    df.columns = ['time' if col == 'Time (s)' else re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+    sensor_type = item.split('.')[0].lower()
+    if sensor_type == 'location':
+        df.columns = ['time' if col == 'Time (s)' else 'location_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+    elif sensor_type == 'proximity':
+        df.columns = ['time' if col == 'Time (s)' else 'proximity_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+    
+    else:
+        df.columns = ['time' if col == 'Time (s)' else re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
     return df
 
 # A function to process each sub-directory (e.g., 'bus 4-6')
@@ -25,7 +32,7 @@ def process_subdirectory(dir_path, category_label, start_time, end_time):
     for item in os.listdir(dir_path):
         item_path = os.path.join(dir_path, item)
         if os.path.isfile(item_path) and item_path.endswith('.csv'):
-            df = process_csv(item_path,start_time, end_time)
+            df = process_csv(item_path, item)
             # Merge data frames on 'time'
             if combined_df is None:
                 combined_df = df
@@ -66,5 +73,28 @@ def combine_all_data(base_path):
     all_data[label_cols] = all_data[label_cols].fillna(0)
     return all_data
 
+def aggregate_data_per_second(data_path):
+    # Load the data
+    df = pd.read_csv(data_path)
+    
+    if not pd.api.types.is_datetime64_any_dtype(df['date_time']):
+        df['date_time'] = pd.to_datetime(df['date_time'])
+    
+    df['date_time'] = df['date_time'].dt.floor('S')
+    
+    aggregated_df = df.groupby('date_time').mean()
+    
+    # Optionally, fill NaNs in category label columns which might occur during aggregation
+    label_cols = [col for col in df.columns if col.startswith('label_')]
+    aggregated_df[label_cols] = aggregated_df[label_cols].fillna(0)
+    
+    # Reset index to keep 'date_time' as a column
+    aggregated_df.reset_index(inplace=True)
+    
+    return aggregated_df
+
 combined_data = combine_all_data(base_path)
 combined_data.to_csv(f'{base_path}/combined_data.csv', index=False)
+
+agg_data = aggregate_data_per_second(f'{base_path}/combined_data.csv')
+agg_data.to_csv(f'{base_path}/per_second_data.csv', index=False)

@@ -41,7 +41,7 @@ class VisualizeDataset:
 
         for format in formats:
             save_path = self.figures_dir / f'{fig_name}.{format}'
-            plot_obj.savefig(save_path)
+            plot_obj.savefig(save_path, dpi=150)
             print(f'Figure saved to {save_path}')
 
         self.plot_number += 1
@@ -54,12 +54,12 @@ class VisualizeDataset:
         names = list(data_table.columns)
         # Create subplots if more columns are specified.
         if len(columns) > 1:
-            f, xar = plt.subplots(len(columns), sharex=True, sharey=False)
+            f, xar = plt.subplots(len(columns), sharex=True, sharey=False,figsize=(20, 20))
         else:
-            f, xar = plt.subplots()
+            f, xar = plt.subplots(figsize=(20, 20))
             xar = [xar]
 
-        f.subplots_adjust(hspace=0.4)
+        f.subplots_adjust(hspace=1)
 
         xfmt = md.DateFormatter('%H:%M')
 
@@ -100,8 +100,9 @@ class VisualizeDataset:
                                 self.line_displays[j%len(self.line_displays)])
 
             xar[i].tick_params(axis='y', labelsize=10)
-            xar[i].legend(relevant_cols, fontsize='xx-small', numpoints=1, loc='upper center',
-                          bbox_to_anchor=(0.5, 1.3), ncol=len(relevant_cols), fancybox=True, shadow=True)
+            # xar[i].legend(relevant_cols, fontsize='xx-small', numpoints=1, loc='upper center',
+            #               bbox_to_anchor=(0.5, 1.3), ncol=len(relevant_cols), fancybox=True, shadow=True)
+            xar[i].legend(relevant_cols, fontsize='xx-small', loc='upper center', bbox_to_anchor=(0.5, 2), ncol=4, frameon=True)
 
             xar[i].set_ylim([min(min_values) - 0.1*(max(max_values) - min(min_values)),
                              max(max_values) + 0.1*(max(max_values) - min(min_values))])

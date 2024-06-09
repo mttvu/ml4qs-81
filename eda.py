@@ -8,8 +8,8 @@ def split_df_by_unique_dates(df, date_column):
 
     return date_dfs
 
-# df = pd.read_csv('data/my/per_second_data.csv')
-df = pd.read_csv('data/kirsty/per_second_data.csv')
+df = pd.read_csv('data/my/per_second_data.csv')
+# df = pd.read_csv('data/kirsty/per_second_data.csv')
 df['date_time'] = pd.to_datetime(df['date_time'])
 
 DataViz = VisualizeDataset(__file__)

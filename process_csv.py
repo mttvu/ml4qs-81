@@ -15,25 +15,44 @@ def get_date_time(time_file_path):
     end_time = datetime.fromtimestamp(end_time_str) 
     return start_time, end_time
 
-def process_csv(file_path, item):
+def get_device_brand(path):
+    device_df = pd.read_csv(path)
+    device_brand = device_df[device_df['property'] == 'deviceBrand']['value'].values[0]
+    return device_brand
+
+def process_csv(file_path, item, device):
     df = pd.read_csv(file_path)
     sensor_type = item.split('.')[0].lower()
-    if sensor_type == 'location':
-        df.columns = ['time' if col == 'Time (s)' else 'location_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
-    elif sensor_type == 'proximity':
-        df.columns = ['time' if col == 'Time (s)' else 'proximity_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
-    
+    if device == 'samsung':
+        if sensor_type == 'location':
+            df.columns = ['time' if col == 'Time (s)' else 'location_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+        elif sensor_type == 'proximity':
+            df.columns = ['time' if col == 'Time (s)' else 'proximity_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+        
+        else:
+            df.columns = ['time' if col == 'Time (s)' else re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
     else:
-        df.columns = ['time' if col == 'Time (s)' else re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+        if sensor_type == 'accelerometer':
+            sensor_type = 'acceleration'
+        elif sensor_type == 'linear accelerometer':
+            sensor_type = 'linear_acceleration'
+        elif sensor_type == 'magnetometer':
+            sensor_type = 'magnetic field'
+        sensor_name = re.sub(r'\s*\([^)]*\)', '', sensor_type).strip().lower().replace(' ', '_')
+
+        df.columns = ['time' if col == 'Time (s)' else 
+              'pressure' if col == 'X (hPa)' else 
+              f'{sensor_name}_'+re.sub(r'\s*\([^)]*\)', '', col).strip().lower().replace(' ', '_') for col in df.columns]
+
     return df
 
 # A function to process each sub-directory (e.g., 'bus 4-6')
-def process_subdirectory(dir_path, category_label, start_time, end_time):
+def process_subdirectory(dir_path, category_label, start_time, end_time, device):
     combined_df = None
     for item in os.listdir(dir_path):
         item_path = os.path.join(dir_path, item)
         if os.path.isfile(item_path) and item_path.endswith('.csv'):
-            df = process_csv(item_path, item)
+            df = process_csv(item_path, item, device)
             # Merge data frames on 'time'
             if combined_df is None:
                 combined_df = df
@@ -59,11 +78,12 @@ def combine_all_data(base_path):
             for sub_dir in os.listdir(category_path):
                 sub_dir_path = os.path.join(category_path, sub_dir)
                 time_file_path = os.path.join(sub_dir_path, 'meta', 'time.csv')
-
+                device_file_path = os.path.join(sub_dir_path, 'meta', 'device.csv')
+                device_brand = get_device_brand(device_file_path)
                 if os.path.isfile(time_file_path):
                     start_time, end_time = get_date_time(time_file_path)
                     if os.path.isdir(sub_dir_path):
-                        df = process_subdirectory(sub_dir_path, 'label_'+category, start_time, end_time)
+                        df = process_subdirectory(sub_dir_path, 'label_'+category, start_time, end_time,device_brand)
                         if all_data.empty:
                             all_data = df
                         else:

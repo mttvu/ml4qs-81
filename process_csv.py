@@ -4,8 +4,8 @@ import re
 from datetime import datetime, timedelta
 
 # Define the base path to your data directory
-# base_path = 'data/my'
-base_path = 'data/kirsty'
+base_path = 'data/my'
+# base_path = 'data/kirsty'
 
 def get_date_time(time_file_path):
     time_df = pd.read_csv(time_file_path)

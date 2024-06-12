@@ -4,9 +4,10 @@ import re
 from datetime import datetime, timedelta
 from util import util
 # Define the base path to your data directory
-base_path = 'data/my'
+# base_path = 'data/my'
+base_path = 'data/keye'
 # base_path = 'data/kirsty'
-
+data_folder = 'data'
 def get_date_time(time_file_path):
     time_df = pd.read_csv(time_file_path)
     start_time_str = time_df.loc[time_df['event'] == 'START', 'system time'].iloc[0]
@@ -94,7 +95,7 @@ def combine_all_data(base_path):
     all_data[label_cols] = all_data[label_cols].fillna(0)
     return all_data
 
-def aggregate_data_per_second(data_path):
+def aggregate_data_per_second(data_path, all_data = False):
     # Load the data
     df = pd.read_csv(data_path)
     
@@ -103,7 +104,11 @@ def aggregate_data_per_second(data_path):
     
     df['date_time'] = df['date_time'].dt.floor('S')
     
-    aggregated_df = df.groupby('date_time').mean()
+    if all_data:
+        aggregated_df = df.groupby(['participant','date_time'], observed=True, as_index=False).mean()
+    else:
+        aggregated_df = df.groupby('date_time', observed=True, as_index=False).mean()
+
     
     # Optionally, fill NaNs in category label columns which might occur during aggregation
     label_cols = [col for col in df.columns if col.startswith('label_')]
@@ -114,8 +119,29 @@ def aggregate_data_per_second(data_path):
     
     return aggregated_df
 
+#combine data from /my /kirsty /keye
+def combine_combined_data():
+    all_data = pd.DataFrame()
+    for name in os.listdir(data_folder):  # /my /kirsty /keye
+        name_path = os.path.join(data_folder, name)
+        if os.path.isdir(name_path):
+            combined_data_path = os.path.join(name_path, 'combined_data.csv')
+            df = pd.read_csv(combined_data_path)
+            df['participant'] = name
+            all_data = pd.concat([all_data, df], ignore_index=True)
+
+    label_cols = [col for col in all_data.columns if col.startswith('label_')]
+    all_data[label_cols] = all_data[label_cols].fillna(0)
+    all_data.to_csv(data_folder+'/all_data.csv')
+
+
+
 combined_data = combine_all_data(base_path)
 combined_data.to_csv(f'{base_path}/combined_data.csv', index=False)
 
 agg_data = aggregate_data_per_second(f'{base_path}/combined_data.csv')
 agg_data.to_csv(f'{base_path}/per_second_data.csv', index=False)
+
+combine_combined_data()
+all_data_per_second = aggregate_data_per_second(data_folder+'/all_data.csv', True)
+all_data_per_second.to_csv(f'{data_folder}/all_data_per_second.csv', index=False)

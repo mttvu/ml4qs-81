@@ -105,9 +105,9 @@ def aggregate_data_per_second(data_path, all_data = False):
     df['date_time'] = df['date_time'].dt.floor('S')
     
     if all_data:
-        aggregated_df = df.groupby(['participant','date_time'], observed=True, as_index=False).mean()
+        aggregated_df = df.groupby(['participant','date_time'], as_index=False).mean()
     else:
-        aggregated_df = df.groupby('date_time', observed=True, as_index=False).mean()
+        aggregated_df = df.groupby('date_time', as_index=False).mean()
 
     
     # Optionally, fill NaNs in category label columns which might occur during aggregation

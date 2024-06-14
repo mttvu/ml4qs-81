@@ -77,7 +77,7 @@ def standardize(df):
     df[cols_to_standardize] = scaler.fit_transform(df[cols_to_standardize])
     return df
 
-df = pd.read_csv('data/all_data_per_second.csv')
+df = pd.read_csv('data/outliners_eliminated.csv')
 df = df.drop(['index','Unnamed: 0','time'], errors='ignore', axis=1)
 df = standardize(df)
 df = extract_date_time_info(df)

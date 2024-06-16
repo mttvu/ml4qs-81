@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
-from util.VisualizeDataset import VisualizeDataset
+# from util.VisualizeDataset import VisualizeDataset
 from Chapter4.TemporalAbstraction import NumericalAbstraction
 from Chapter4.TemporalAbstraction import CategoricalAbstraction
 from Chapter4.FrequencyAbstraction import FourierTransformation
@@ -77,6 +77,8 @@ def standardize(df):
     df[cols_to_standardize] = scaler.fit_transform(df[cols_to_standardize])
     return df
 
+
+
 df = pd.read_csv('data/outliners_eliminated.csv')
 df = df.drop(['index','Unnamed: 0','time'], errors='ignore', axis=1)
 df = standardize(df)
@@ -84,7 +86,8 @@ df = extract_date_time_info(df)
 df = participant_label_encoding(df)
 df = frequency_domain_transformation(df)
 df = location_transformation(df, 10)
-df = time_domain_transformation(df, 10)
+# df = time_domain_transformation(df, 10)
 
 
 df.to_csv('data/data_fe.csv')
+

@@ -74,7 +74,7 @@ def standardize(df):
 
 
 
-df = pd.read_csv('data/outliners_eliminated.csv')
+df = pd.read_csv('data/imputed.csv')
 df = df.drop(['index','Unnamed: 0','time'], errors='ignore', axis=1)
 df = standardize(df)
 df = extract_date_time_info(df)

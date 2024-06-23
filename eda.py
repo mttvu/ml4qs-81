@@ -8,17 +8,18 @@ def split_df_by_unique_dates(df, date_column):
 
     return date_dfs
 
-df = pd.read_csv('data/my/per_second_data.csv')
-# df = pd.read_csv('data/kirsty/per_second_data.csv')
-df['date_time'] = pd.to_datetime(df['date_time'])
+if __name__ == '__main__':
+    df = pd.read_csv('data/my/per_second_data.csv')
+    # df = pd.read_csv('data/kirsty/per_second_data.csv')
+    df['date_time'] = pd.to_datetime(df['date_time'])
 
-DataViz = VisualizeDataset(__file__)
+    DataViz = VisualizeDataset(__file__)
 
-dfs = split_df_by_unique_dates(df, 'date_time')
+    dfs = split_df_by_unique_dates(df, 'date_time')
 
-for date, d in dfs.items():
-    d.set_index('date_time', inplace=True)
-    DataViz.plot_dataset(d, ['acceleration_', 'gyroscope_', 'linear_acceleration_', 'location_', 
-                          'magnetic_field_', 'pressure', 'proximity_', 'label_'],
-                              ['like', 'like', 'like', 'like', 'like', 'like', 'like','like'],
-                              ['line', 'line', 'line', 'line', 'line', 'line', 'line', 'points'])
+    for date, d in dfs.items():
+        d.set_index('date_time', inplace=True)
+        DataViz.plot_dataset(d, ['acceleration_', 'gyroscope_', 'linear_acceleration_', 'location_', 
+                            'magnetic_field_', 'pressure', 'proximity_', 'label_'],
+                                ['like', 'like', 'like', 'like', 'like', 'like', 'like','like'],
+                                ['line', 'line', 'line', 'line', 'line', 'line', 'line', 'points'])
